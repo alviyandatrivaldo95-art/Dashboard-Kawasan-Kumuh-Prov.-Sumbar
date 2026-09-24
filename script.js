@@ -69,7 +69,7 @@ function cekKolomKategori(
 }
 
 const SPREADSHEET_ID =
-  "2PACX-1vQHGxAQLqOyIceGjSf0-e0kR4Tvjlk2d9RqTKkVA_cWaMSPNYHRn2Wm017-hydKMg";
+  "12ZEtHw6czHD00zI9ynjkiK0Ws3s70Z22iB97Z6YEkrw";
 
 const SHEET_GID = "1694018568";
 
