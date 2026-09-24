@@ -647,7 +647,8 @@ async function ambilDataSpreadsheet() {
   try {
     console.log("📥 Mengambil data spreadsheet terbaru...");
 
-    const urlData = `${SHEET_CSV_URL}&t=${Date.now()}`;
+    const urlData =
+      `${SHEET_CSV_URL}&cachebust=${Date.now()}`;
 
     const response = await fetch(urlData, {
       method: "GET",
@@ -675,6 +676,13 @@ async function ambilDataSpreadsheet() {
     }
 
     semuaData = dataBaru;
+    
+    const statusUpdate = document.getElementById("statusUpdateData");
+
+    if (statusUpdate) {
+      statusUpdate.textContent =
+        `Data diperbarui: ${new Date().toLocaleTimeString("id-ID")}`;
+    }
 
     console.log(
       `✅ ${semuaData.length} baris data berhasil dimuat pada`,
@@ -1881,6 +1889,34 @@ function mulaiDashboard() {
 
   // Ambil ulang data setiap 30 detik
   timerPembaruan = setInterval(() => {
+    ambilDataSpreadsheet();
+  }, INTERVAL_UPDATE);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", mulaiDashboard);
+} else {
+  mulaiDashboard();
+}
+
+const INTERVAL_UPDATE = 10000;
+let timerPembaruan = null;
+
+function mulaiDashboard() {
+  console.log("✅ DOM siap digunakan.");
+
+  ambilDataSpreadsheet();
+
+  if (timerPembaruan) {
+    clearInterval(timerPembaruan);
+  }
+
+  timerPembaruan = setInterval(() => {
+    console.log(
+      "🔄 Memperbarui data:",
+      new Date().toLocaleTimeString("id-ID")
+    );
+
     ambilDataSpreadsheet();
   }, INTERVAL_UPDATE);
 }
