@@ -638,17 +638,16 @@ function parseCSVManual(csvText) {
 
 async function ambilDataSpreadsheet() {
   if (sedangMemuatData) {
-    console.log("⏳ Pembaruan sebelumnya masih berjalan.");
     return;
   }
 
   sedangMemuatData = true;
 
   try {
-    console.log("📥 Mengambil data spreadsheet terbaru...");
-
     const urlData =
       `${SHEET_CSV_URL}&cachebust=${Date.now()}`;
+
+    console.log("📥 Mengambil data terbaru:", urlData);
 
     const response = await fetch(urlData, {
       method: "GET",
@@ -662,34 +661,22 @@ async function ambilDataSpreadsheet() {
 
     const csvText = await response.text();
 
-    if (!csvText || csvText.length < 10) {
-      throw new Error("Data CSV kosong atau terlalu kecil.");
-    }
-
     const hasilParse = parseCSV(csvText);
     const dataBaru = Array.isArray(hasilParse.data)
       ? hasilParse.data
       : [];
 
     if (!dataBaru.length) {
-      throw new Error("Tidak ada baris data yang dapat dibaca.");
+      throw new Error("Data spreadsheet kosong.");
     }
 
     semuaData = dataBaru;
-    
-    const statusUpdate = document.getElementById("statusUpdateData");
-
-    if (statusUpdate) {
-      statusUpdate.textContent =
-        `Data diperbarui: ${new Date().toLocaleTimeString("id-ID")}`;
-    }
 
     console.log(
-      `✅ ${semuaData.length} baris data berhasil dimuat pada`,
-      new Date().toLocaleTimeString("id-ID")
+      `✅ Data berhasil dimuat: ${semuaData.length} baris`
     );
 
-    periksaHeaderSpreadsheet();
+    // Membuat ulang daftar kota dari data terbaru
     isiPilihanKabKota();
 
     if (!dataInitialized) {
@@ -697,17 +684,34 @@ async function ambilDataSpreadsheet() {
       dataInitialized = true;
       pasangEventMenu();
     } else {
-      // Memperbarui dashboard tanpa mengubah kota/kategori yang sedang dipilih
-      tampilkanDashboard(currentKabupaten, currentCategory, true);
+      // Mempertahankan kota dan kategori yang sedang dipilih
+      tampilkanDashboard(
+        currentKabupaten,
+        currentCategory,
+        true
+      );
     }
+
+    const daftarKota = [
+      ...new Set(
+        semuaData
+          .map(baris =>
+            ambilNilaiSpreadsheet(
+              baris,
+              HEADER_SPREADSHEET.NAMA_KAB_KOTA
+            )
+          )
+          .filter(Boolean)
+      )
+    ];
+
+    console.log("🏙️ Daftar kota terbaru:", daftarKota);
 
   } catch (error) {
-    console.error("❌ Gagal mengambil data spreadsheet:", error);
-
-    // Jangan menghapus dashboard lama jika hanya terjadi gangguan sementara
-    if (!dataInitialized) {
-      tampilkanError(`Gagal mengambil data spreadsheet: ${error.message}`);
-    }
+    console.error(
+      "❌ Gagal mengambil data spreadsheet:",
+      error
+    );
   } finally {
     sedangMemuatData = false;
   }
@@ -1882,28 +1886,7 @@ function tampilkanError(pesanError) {
 }
 
 function mulaiDashboard() {
-  console.log("✅ DOM siap digunakan.");
-
-  // Ambil data pertama kali
-  ambilDataSpreadsheet();
-
-  // Ambil ulang data setiap 30 detik
-  timerPembaruan = setInterval(() => {
-    ambilDataSpreadsheet();
-  }, INTERVAL_UPDATE);
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", mulaiDashboard);
-} else {
-  mulaiDashboard();
-}
-
-const INTERVAL_UPDATE = 10000;
-let timerPembaruan = null;
-
-function mulaiDashboard() {
-  console.log("✅ DOM siap digunakan.");
+  console.log("✅ Dashboard dimulai");
 
   ambilDataSpreadsheet();
 
@@ -1913,7 +1896,7 @@ function mulaiDashboard() {
 
   timerPembaruan = setInterval(() => {
     console.log(
-      "🔄 Memperbarui data:",
+      "🔄 Memeriksa baris/kota baru:",
       new Date().toLocaleTimeString("id-ID")
     );
 
@@ -1922,7 +1905,12 @@ function mulaiDashboard() {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", mulaiDashboard);
+  document.addEventListener(
+    "DOMContentLoaded",
+    mulaiDashboard
+  );
 } else {
   mulaiDashboard();
 }
+
+
