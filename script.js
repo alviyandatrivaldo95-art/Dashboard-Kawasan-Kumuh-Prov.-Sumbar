@@ -130,6 +130,9 @@ const STAT_ROW_COLUMN =
   HEADER_SPREADSHEET.JUMLAH_TOTAL_KK_STAT_ROW;
 
 let semuaData = [];
+let timerPembaruan = null;
+let sedangMemuatData = false;
+const INTERVAL_UPDATE = 10000; // 10 detik
 let currentCategory = "kumuh";
 let currentKabupaten = "semua";
 let dataInitialized = false;
@@ -634,14 +637,22 @@ function parseCSVManual(csvText) {
 }
 
 async function ambilDataSpreadsheet() {
+  if (sedangMemuatData) {
+    console.log("⏳ Pembaruan sebelumnya masih berjalan.");
+    return;
+  }
+
+  sedangMemuatData = true;
+
   try {
-    console.log("📥 Mengambil data spreadsheet...");
+    console.log("📥 Mengambil data spreadsheet terbaru...");
 
     const urlData = `${SHEET_CSV_URL}&t=${Date.now()}`;
+
     const response = await fetch(urlData, {
       method: "GET",
       mode: "cors",
-      cache: "no-cache"
+      cache: "no-store"
     });
 
     if (!response.ok) {
@@ -655,16 +666,22 @@ async function ambilDataSpreadsheet() {
     }
 
     const hasilParse = parseCSV(csvText);
-    semuaData = Array.isArray(hasilParse.data) ? hasilParse.data : [];
+    const dataBaru = Array.isArray(hasilParse.data)
+      ? hasilParse.data
+      : [];
 
-    console.log(`✅ ${semuaData.length} baris data berhasil dimuat.`);
-
-    if (!semuaData.length) {
+    if (!dataBaru.length) {
       throw new Error("Tidak ada baris data yang dapat dibaca.");
     }
 
+    semuaData = dataBaru;
+
+    console.log(
+      `✅ ${semuaData.length} baris data berhasil dimuat pada`,
+      new Date().toLocaleTimeString("id-ID")
+    );
+
     periksaHeaderSpreadsheet();
-    tampilkanContohData();
     isiPilihanKabKota();
 
     if (!dataInitialized) {
@@ -672,11 +689,19 @@ async function ambilDataSpreadsheet() {
       dataInitialized = true;
       pasangEventMenu();
     } else {
+      // Memperbarui dashboard tanpa mengubah kota/kategori yang sedang dipilih
       tampilkanDashboard(currentKabupaten, currentCategory, true);
     }
+
   } catch (error) {
     console.error("❌ Gagal mengambil data spreadsheet:", error);
-    tampilkanError(`Gagal mengambil data spreadsheet: ${error.message}`);
+
+    // Jangan menghapus dashboard lama jika hanya terjadi gangguan sementara
+    if (!dataInitialized) {
+      tampilkanError(`Gagal mengambil data spreadsheet: ${error.message}`);
+    }
+  } finally {
+    sedangMemuatData = false;
   }
 }
 
@@ -1850,7 +1875,14 @@ function tampilkanError(pesanError) {
 
 function mulaiDashboard() {
   console.log("✅ DOM siap digunakan.");
+
+  // Ambil data pertama kali
   ambilDataSpreadsheet();
+
+  // Ambil ulang data setiap 30 detik
+  timerPembaruan = setInterval(() => {
+    ambilDataSpreadsheet();
+  }, INTERVAL_UPDATE);
 }
 
 if (document.readyState === "loading") {
