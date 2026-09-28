@@ -74,8 +74,8 @@ const SPREADSHEET_ID =
 const SHEET_GID = "1694018568";
 
 const SHEET_CSV_URL =
-  `https://docs.google.com/spreadsheets/d/e/${SPREADSHEET_ID}/pub` +
-  `?gid=${SHEET_GID}&single=true&output=csv`;
+  `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export` +
+  `?format=csv&gid=${SHEET_GID}`;
 
 const HEADER_SPREADSHEET = {
   NAMA_KAB_KOTA: "Nama Kab/Kota",
@@ -102,6 +102,10 @@ const HEADER_SPREADSHEET = {
     "Jumlah KK tidak terakses air minum aman",
   JUMLAH_KK_TIDAK_TERPENUHI_AIR_MINUM:
     "Jumlah KK tidak terpenuhi Air Minum",
+  PERSENTASE_TIDAK_TERAKSES_AIR_MINUM_AMAN:
+    "Jumlah KK tidak terakses air minum aman Persentase",
+  PERSENTASE_TIDAK_TERPENUHI_AIR_MINUM:
+    "Jumlah KK tidak terpenuhi Air Minum Persentase",
 
   PANJANG_DRAINASE_IDEAL:
     "Panjang Drainase Lingkungan Ideal (m)",
@@ -109,6 +113,8 @@ const HEADER_SPREADSHEET = {
     "Panjang Drainase Lingkungan dengan kondisi Rusak (m)",
   PANJANG_DRAINASE_EKSISTING:
     "Panjang Drainase Lingkungan Eksisting (m)",
+  LUAS_TERKENA_GENANGAN:
+    "Luas Kawasan Terkena Genangan",
 
   JUMLAH_KK_TIDAK_TERAKSES_AIR_LIMBAH:
     "Jumlah KK tidak terakses sistem air limbah sesuai standar teknis",
@@ -167,37 +173,63 @@ const KATEGORI_DASHBOARD = {
   "jalan-lingkungan": {
     chart1Column: HEADER_SPREADSHEET.PANJANG_JALAN_LINGKUNGAN,
     chart2Column: HEADER_SPREADSHEET.PANJANG_JALAN_RUSAK,
-    chart3Column: HEADER_SPREADSHEET.PANJANG_JALAN_EKSISTING,
+
+    // chart3 merupakan hasil perhitungan, bukan kolom langsung
+    chart3Column: null,
+
+    chart3Numerator:
+      HEADER_SPREADSHEET.PANJANG_JALAN_RUSAK,
+
+    chart3Denominator:
+      HEADER_SPREADSHEET.PANJANG_JALAN_EKSISTING,
+
+    chart3IsPercentage: true,
+
     chart1Type: "bar",
     chart2Type: "bar",
     chart3Type: "pie",
-    chart1Label: "PANJANG TOTAL JALAN (m)",
-    chart2Label: "PANJANG JALAN RUSAK (m)",
-    chart3Label: "PANJANG JALAN EKSISTING (m)"
+    chart1Label: "PANJANG JALAN LINGKUNGAN (m)",
+    chart2Label: "JALAN LINGKUNGAN DENGAN KONDISI RUSAK (m)",
+    chart3Label: "PERSENTASE JALAN LINGKUNGAN DENGAN KONDISI RUSAK (%)"
   },
 
   "air-minum": {
     chart1Column: HEADER_SPREADSHEET.JUMLAH_KK_TIDAK_TERAKSES_AIR_MINUM_AMAN,
-    chart2Column: HEADER_SPREADSHEET.JUMLAH_KK_TIDAK_TERAKSES_AIR_MINUM_AMAN,
-    chart3Column: HEADER_SPREADSHEET.JUMLAH_KK_TIDAK_TERPENUHI_AIR_MINUM,
+    chart2Column: HEADER_SPREADSHEET.PERSENTASE_TIDAK_TERAKSES_AIR_MINUM_AMAN,
+    chart3Column: HEADER_SPREADSHEET.PERSENTASE_TIDAK_TERPENUHI_AIR_MINUM,
     chart1Type: "bar",
     chart2Type: "pie",
     chart3Type: "pie",
     chart1Label: "AIR MINUM",
-    chart2Label: "JUMLAH KK TIDAK ADA AKSES AIR MINUM",
-    chart3Label: "JUMLAH KK TIDAK TERPENUHI AIR MINUM"
+    chart2Label: "PERSENTASE KK TIDAK ADA AKSES AIR MINUM",
+    chart3Label: "PERSENTASE KK TIDAK TERPENUHI AIR MINUM"
   },
 
   drainase: {
-    chart1Column: HEADER_SPREADSHEET.PANJANG_DRAINASE_IDEAL,
-    chart2Column: HEADER_SPREADSHEET.PANJANG_DRAINASE_RUSAK,
-    chart3Column: HEADER_SPREADSHEET.PANJANG_DRAINASE_EKSISTING,
+    chart1Column:
+      HEADER_SPREADSHEET.PANJANG_DRAINASE_RUSAK,
+
+    chart2Column:
+      HEADER_SPREADSHEET.LUAS_TERKENA_GENANGAN,
+
+    chart3Column: null,
+
+    chart3Numerator:
+      HEADER_SPREADSHEET.PANJANG_DRAINASE_RUSAK,
+
+    chart3Denominator:
+      HEADER_SPREADSHEET.PANJANG_DRAINASE_EKSISTING,
+
+    chart3IsPercentage: true,
+
     chart1Type: "bar",
     chart2Type: "bar",
     chart3Type: "pie",
-    chart1Label: "PANJANG DRAINASE IDEAL (m)",
-    chart2Label: "PANJANG DRAINASE RUSAK (m)",
-    chart3Label: "PANJANG DRAINASE EKSISTING (m)"
+
+    chart1Label: "PANJANG DRAINASE RUSAK (m)",
+    chart2Label: "LUAS TERKENA GENANGAN (Ha)",
+    chart3Label:
+      "PERSENTASE PANJANG DRAINASE RUSAK (%)"
   },
 
   "air-limbah": {
@@ -247,18 +279,26 @@ const KONFIGURASI_GRAFIK_KOMBINASI = {
       "Tidak Ada Akses Air Minum",
       "Tidak Terpenuhi Air Minum"
     ],
-    title: "TOTAL KK TANPA AKSES AIR MINUM"
+    title: "AIR MINUM"
   },
 
   drainase: {
-    bar: KATEGORI_DASHBOARD.drainase.chart2Column,
-    line1: KATEGORI_DASHBOARD.drainase.chart1Column,
-    line2: KATEGORI_DASHBOARD.drainase.chart3Column,
+    bar:
+      HEADER_SPREADSHEET.PANJANG_DRAINASE_IDEAL,
+
+    line1:
+      HEADER_SPREADSHEET.PANJANG_DRAINASE_RUSAK,
+
+    line2:
+      HEADER_SPREADSHEET.PANJANG_DRAINASE_EKSISTING,
+
+
     labels: [
-      KATEGORI_DASHBOARD.drainase.chart2Label,
-      KATEGORI_DASHBOARD.drainase.chart1Label,
-      KATEGORI_DASHBOARD.drainase.chart3Label
+      "PANJANG DRAINASE IDEAL (m)",
+      "PANJANG DRAINASE RUSAK (m)",
+      "PANAJNG DRAINASE EKSISTING (m)"
     ],
+
     title: "DRAINASE LINGKUNGAN"
   },
 
@@ -428,6 +468,23 @@ function formatAngka(nilai) {
 
 function formatAngkaBulat(nilai) {
   return Math.round(Number(nilai || 0)).toLocaleString("id-ID");
+}
+
+function formatNilaiGrafik(nilai, konfigurasi, nomorChart) {
+  const angka = Number(nilai || 0);
+
+  if (
+    konfigurasi &&
+    konfigurasi.chart3IsPercentage &&
+    nomorChart === 3
+  ) {
+    return `${angka.toLocaleString("id-ID", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}%`;
+  }
+
+  return formatAngkaDesimal(angka);
 }
 
 function normalisasiKategori(nilaiKategori) {
@@ -777,6 +834,35 @@ function filterDataKabKota(namaKabKota) {
   });
 }
 
+function hitungPersentaseKolom(
+  dataBaris,
+  kolomPembilang,
+  kolomPenyebut
+) {
+  const nilaiPembilang = ubahMenjadiAngka(
+    ambilNilaiSpreadsheet(
+      dataBaris,
+      kolomPembilang
+    )
+  );
+
+  const nilaiPenyebut = ubahMenjadiAngka(
+    ambilNilaiSpreadsheet(
+      dataBaris,
+      kolomPenyebut
+    )
+  );
+
+  if (nilaiPenyebut <= 0) {
+    return 0;
+  }
+
+  return (
+    nilaiPembilang /
+    nilaiPenyebut
+  ) * 100;
+}
+
 function hitungDataDashboard(dataTerpilih, konfigurasi) {
   let totalStatRow = 0;
   let totalRingan = 0;
@@ -849,20 +935,45 @@ function hitungDataDashboard(dataTerpilih, konfigurasi) {
       konfigurasi.chart2Column
     );
 
-    const nilaiChart3Spreadsheet = ambilNilaiSpreadsheet(
-      dataBaris,
-      konfigurasi.chart3Column
-    );
+    let nilaiChart3 = 0;
+
+    if (konfigurasi.chart3IsPercentage) {
+      nilaiChart3 = hitungPersentaseKolom(
+        dataBaris,
+        konfigurasi.chart3Numerator,
+        konfigurasi.chart3Denominator
+      );
+
+      console.log(
+        "========== PERHITUNGAN PERSENTASE =========="
+      );
+
+      console.table({
+        kategori: currentCategory,
+        namaKawasan,
+        pembilang: konfigurasi.chart3Numerator,
+        penyebut: konfigurasi.chart3Denominator,
+        hasilPersentase: nilaiChart3
+      });
+    } else {
+      const nilaiChart3Spreadsheet =
+        ambilNilaiSpreadsheet(
+          dataBaris,
+          konfigurasi.chart3Column
+        );
+
+      nilaiChart3 = ubahMenjadiAngka(
+        nilaiChart3Spreadsheet,
+        konfigurasi.chart3Column
+      );
+    }
 
     const nilaiChart2 = ubahMenjadiAngka(
       nilaiChart2Spreadsheet,
       konfigurasi.chart2Column
     );
 
-    const nilaiChart3 = ubahMenjadiAngka(
-      nilaiChart3Spreadsheet,
-      konfigurasi.chart3Column
-    );
+
 
     if (currentCategory === "kumuh") {
       if (kategoriAdalah(nilaiKategori, "ringan")) {
@@ -973,8 +1084,14 @@ function formatAngkaDesimal(nilai) {
   });
 }
 
-function buatGrafikBar(containerId, dataArray, labels, judul) {
-  const container = bersihkanContainerGrafik(containerId);
+function buatGrafikBar(
+  containerId,
+  dataArray,
+  labels,
+  judul
+) {
+  const container =
+    bersihkanContainerGrafik(containerId);
 
   if (!container) {
     return;
@@ -998,50 +1115,249 @@ function buatGrafikBar(containerId, dataArray, labels, judul) {
     return;
   }
 
-  const nilaiTerbesar = Math.max(...dataValid.map(item => item.nilai));
+  const nilaiTerbesar = Math.max(
+    ...dataValid.map(item => item.nilai)
+  );
+
   const tinggiMaksimum = 220;
 
   const bars = document.createElement("div");
   bars.className = "bars";
 
+  /*
+   * Tooltip memakai tampilan yang sama
+   * seperti tooltip combo chart.
+   */
+  const tooltip = document.createElement("div");
+  tooltip.className = "bar-tooltip";
+  tooltip.setAttribute("aria-hidden", "true");
+
+  const tooltipTitle = document.createElement("div");
+  tooltipTitle.className = "bar-tooltip-title";
+  tooltipTitle.textContent = "Informasi Kawasan";
+
+  const rowKawasan = document.createElement("div");
+  rowKawasan.className = "bar-tooltip-row";
+
+  const labelKawasan = document.createElement("span");
+  labelKawasan.className = "bar-tooltip-label";
+  labelKawasan.textContent = "Kawasan:";
+
+  const nilaiKawasan = document.createElement("span");
+  nilaiKawasan.className = "bar-tooltip-value";
+
+  rowKawasan.append(
+    labelKawasan,
+    nilaiKawasan
+  );
+
+  const rowData = document.createElement("div");
+  rowData.className = "bar-tooltip-row";
+
+  const labelData = document.createElement("span");
+  labelData.className = "bar-tooltip-label";
+  labelData.textContent = "Data:";
+
+  const nilaiData = document.createElement("span");
+  nilaiData.className = "bar-tooltip-value";
+  nilaiData.textContent = judul || "Bar Chart";
+
+  rowData.append(
+    labelData,
+    nilaiData
+  );
+
+  const rowNilai = document.createElement("div");
+  rowNilai.className = "bar-tooltip-row";
+
+  const labelNilai = document.createElement("span");
+  labelNilai.className = "bar-tooltip-label";
+  labelNilai.textContent = "Nilai:";
+
+  const tooltipNilaiBar = document.createElement("span");
+  tooltipNilaiBar.className = "bar-tooltip-value";
+
+  rowNilai.append(
+    labelNilai,
+    tooltipNilaiBar
+  );
+
+  tooltip.append(
+    tooltipTitle,
+    rowKawasan,
+    rowData,
+    rowNilai
+  );
+
+  /*
+   * Dimasukkan ke body agar tidak terpotong
+   * oleh overflow pada chart.
+   */
+  document.body.appendChild(tooltip);
+
+  function tampilkanTooltip(event, item, barItem) {
+    if (!event) {
+      return;
+    }
+
+    nilaiKawasan.textContent = item.label;
+    tooltipNilaiBar.textContent = formatAngkaDesimal(item.nilai);
+
+    tooltip.classList.add("visible");
+    tooltip.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    /*
+     * Ukur ukuran aktual tooltip setelah terlihat.
+     */
+    const batasTooltip =
+      tooltip.getBoundingClientRect();
+
+    const jarak = 16;
+
+    let posisiX =
+      event.clientX + jarak;
+
+    let posisiY =
+      event.clientY + jarak;
+
+    /*
+     * Jika dekat sisi kanan, tooltip pindah ke kiri.
+     */
+    if (
+      posisiX + batasTooltip.width >
+      window.innerWidth - 8
+    ) {
+      posisiX =
+        event.clientX -
+        batasTooltip.width -
+        jarak;
+    }
+
+    /*
+     * Jika dekat sisi bawah, tooltip pindah ke atas.
+     */
+    if (
+      posisiY + batasTooltip.height >
+      window.innerHeight - 8
+    ) {
+      posisiY =
+        event.clientY -
+        batasTooltip.height -
+        jarak;
+    }
+
+    tooltip.style.left =
+      `${Math.max(8, posisiX)}px`;
+
+    tooltip.style.top =
+      `${Math.max(8, posisiY)}px`;
+
+    barItem.classList.add("is-hover");
+  }
+
+    function sembunyikanTooltip(barItem) {
+      tooltip.classList.remove("visible");
+      tooltip.setAttribute("aria-hidden", "true");
+
+      barItem.classList.remove("is-hover");
+
+      tooltip.style.left = "-9999px";
+      tooltip.style.top = "-9999px";
+    }
+
   dataValid.forEach(item => {
     const barItem = document.createElement("div");
     barItem.className = "bar-item";
+    barItem.setAttribute("tabindex", "0");
 
     const nilai = document.createElement("div");
     nilai.className = "nilai";
-    nilai.textContent = formatAngkaDesimal(item.nilai);
+    nilai.textContent =
+      formatAngkaDesimal(item.nilai);
 
     const bar = document.createElement("div");
     bar.className = "bar";
 
     const tinggiBar =
-      nilaiTerbesar > 0 ? (item.nilai / nilaiTerbesar) * tinggiMaksimum : 0;
+      nilaiTerbesar > 0
+        ? (item.nilai / nilaiTerbesar) *
+          tinggiMaksimum
+        : 0;
 
-    bar.style.setProperty("--bar-height", `${Math.max(0, tinggiBar)}px`);
+    bar.style.setProperty(
+      "--bar-height",
+      `${Math.max(0, tinggiBar)}px`
+    );
 
     const label = document.createElement("div");
     label.className = "label";
     label.textContent = item.label;
     label.title = item.label;
 
-    barItem.appendChild(nilai);
-    barItem.appendChild(bar);
-    barItem.appendChild(label);
+    barItem.append(
+      nilai,
+      bar,
+      label
+    );
+
+    bar.addEventListener(
+      "mouseenter",
+      event => {
+        tampilkanTooltip(event, item, barItem);
+      }
+    );
+
+    bar.addEventListener(
+      "mousemove",
+      event => {
+        tampilkanTooltip(event, item, barItem);
+      }
+    );
+
+    bar.addEventListener(
+      "mouseleave",
+      () => {
+        sembunyikanTooltip(barItem);
+      }
+    );
+
+    barItem.addEventListener(
+      "focus",
+      event => {
+        tampilkanTooltip(
+          event,
+          item,
+          barItem
+        );
+      }
+    );
+
+    barItem.addEventListener(
+      "blur",
+      () => {
+        sembunyikanTooltip(barItem);
+      }
+    );
+
     bars.appendChild(barItem);
   });
 
   container.appendChild(bars);
 }
+
 function buatGarisDOM(
   plot,
   bars,
   dataKawasan,
   nilaiMaksimum,
-  tinggiPlot
+  tinggiPlot,
+  konfigurasi
 ) {
-  const overlayLama =
-    plot.querySelector(".combo-overlay");
+
+  const overlayLama = plot.querySelector(".combo-overlay");
 
   if (overlayLama) {
     overlayLama.remove();
@@ -1050,8 +1366,7 @@ function buatGarisDOM(
   const overlay = document.createElement("div");
   overlay.className = "combo-overlay";
 
-  const batasPlot =
-    plot.getBoundingClientRect();
+  const batasPlot = plot.getBoundingClientRect();
 
   const daftarBar = [
     ...bars.querySelectorAll(".combo-bar")
@@ -1063,15 +1378,18 @@ function buatGarisDOM(
   }
 
   /*
-   * Baseline diambil dari posisi aktual bar.
-   * Dengan cara ini line selalu mengikuti dasar
-   * bar yang benar-benar tampil.
+   * Titik dasar grafik diambil dari posisi bawah
+   * bar pertama secara aktual.
    */
-  const barPertama =
-    daftarBar[0].getBoundingClientRect();
+  const barPertama = daftarBar[0].getBoundingClientRect();
 
-  const baseline =
-    barPertama.bottom - batasPlot.top;
+  const baseline = barPertama.bottom - batasPlot.top;
+
+  /*
+   * Tinggi grafik aktual berdasarkan ukuran DOM,
+   * bukan angka tetap dari CSS.
+   */
+  const tinggiAktual = plot.clientHeight;
 
   const daftarGaris = [
     {
@@ -1079,18 +1397,17 @@ function buatGarisDOM(
       lineClass: "combo-line-orange",
       pointClass: "combo-point-orange",
       valueClass: "combo-value-orange",
-      offsetY: -16,
-      offsetX: 7,
-      textAnchor: "start"
+      offsetY: -12,
+      isPercentage: false
     },
     {
       key: "line2",
       lineClass: "combo-line-yellow",
       pointClass: "combo-point-yellow",
       valueClass: "combo-value-yellow",
-      offsetY: 16,
-      offsetX: 7,
-      textAnchor: "start"
+      offsetY: 12,
+      isPercentage:
+        konfigurasi?.line2IsPercentage === true
     }
   ];
 
@@ -1103,12 +1420,10 @@ function buatGarisDOM(
           return null;
         }
 
-        const batasBar =
-          elemenBar.getBoundingClientRect();
+        const batasBar = elemenBar.getBoundingClientRect();
 
         /*
-         * Titik line menggunakan titik tengah bar
-         * pada kawasan yang sama.
+         * X tepat di tengah atas masing-masing bar.
          */
         const x =
           batasBar.left -
@@ -1121,16 +1436,19 @@ function buatGarisDOM(
         );
 
         /*
-         * Nilai line memakai skala yang sama dengan bar.
+         * Skala point menggunakan tinggi aktual plot.
+         * Ini membuat posisi point konsisten dengan bar.
          */
-        const y =
-          baseline -
-          (nilai / nilaiMaksimum) *
-            (tinggiPlot - 20);
+        const tinggiPoint =
+          nilaiMaksimum > 0
+            ? (nilai / nilaiMaksimum) * tinggiAktual
+            : 0;
+
+        const y = baseline - tinggiPoint;
 
         return {
           x,
-          y: Math.max(10, y),
+          y: Math.max(5, y),
           nilai
         };
       })
@@ -1139,31 +1457,22 @@ function buatGarisDOM(
     /*
      * Gambar garis antar-point.
      */
-    for (
-      let index = 0;
-      index < titik.length - 1;
-      index++
-    ) {
+    for (let index = 0; index < titik.length - 1; index++) {
       const titikAwal = titik[index];
       const titikAkhir = titik[index + 1];
 
-      const deltaX =
-        titikAkhir.x - titikAwal.x;
-
-      const deltaY =
-        titikAkhir.y - titikAwal.y;
+      const deltaX = titikAkhir.x - titikAwal.x;
+      const deltaY = titikAkhir.y - titikAwal.y;
 
       const panjang = Math.sqrt(
-        deltaX * deltaX +
-        deltaY * deltaY
+        deltaX * deltaX + deltaY * deltaY
       );
 
       const sudut =
         Math.atan2(deltaY, deltaX) *
         (180 / Math.PI);
 
-      const elemenGaris =
-        document.createElement("span");
+      const elemenGaris = document.createElement("span");
 
       elemenGaris.className =
         `combo-line ${konfigurasiGaris.lineClass}`;
@@ -1184,11 +1493,10 @@ function buatGarisDOM(
     }
 
     /*
-     * Gambar point dan nilai line.
+     * Gambar point dan angka.
      */
     titik.forEach((titikData, index) => {
-      const point =
-        document.createElement("span");
+      const point = document.createElement("span");
 
       point.className =
         `combo-point ${konfigurasiGaris.pointClass}`;
@@ -1201,41 +1509,140 @@ function buatGarisDOM(
 
       overlay.appendChild(point);
 
-      const nilai =
-        document.createElement("span");
+      const nilai = document.createElement("span");
 
       nilai.className =
         `combo-value ${konfigurasiGaris.valueClass}`;
 
       nilai.textContent =
-        formatAngkaDesimal(titikData.nilai);
+        konfigurasiGaris.isPercentage
+          ? `${formatAngkaDesimal(titikData.nilai)}%`
+          : formatAngkaDesimal(titikData.nilai);
 
       nilai.style.left =
-        `${titikData.x + 10}px`;
+        `${titikData.x}px`;
 
       nilai.style.top =
         `${titikData.y + konfigurasiGaris.offsetY}px`;
 
-      overlay.appendChild(nilai);
-
-      const geserHorizontal =
-        index % 2 === 0 ? 7 : -7;
-
-      nilai.style.left =
-        `${titikData.x + geserHorizontal}px`;
-      
-        nilai.style.transform =
+      nilai.style.transform =
         index % 2 === 0
           ? "translateY(-50%)"
           : "translate(-100%, -50%)";
+
+      overlay.appendChild(nilai);
     });
   });
 
-  /*
-   * Overlay hanya berisi line, point, dan nilai.
-   * Overlay tidak menghapus atau mengganti bar.
-   */
   plot.appendChild(overlay);
+}
+
+function buatTooltipCombo(grafik) {
+  const tooltip = document.createElement("div");
+
+  tooltip.className = "combo-tooltip";
+  tooltip.setAttribute("aria-hidden", "true");
+
+  const title = document.createElement("div");
+  title.className = "combo-tooltip-title";
+  title.textContent = "Informasi Kawasan";
+
+  // Baris nama kawasan
+  const barisNama = document.createElement("div");
+  barisNama.className = "combo-tooltip-row";
+
+  const labelNama = document.createElement("span");
+  labelNama.className = "combo-tooltip-label";
+  labelNama.textContent = "Kawasan:";
+
+  const nilaiNama = document.createElement("span");
+  nilaiNama.className = "combo-tooltip-value";
+
+  barisNama.append(
+    labelNama,
+    nilaiNama
+  );
+
+  // Baris nama data bar
+  const barisLabel = document.createElement("div");
+  barisLabel.className = "combo-tooltip-row";
+
+  const labelData = document.createElement("span");
+  labelData.className = "combo-tooltip-label";
+  labelData.textContent = "Data:";
+
+  const nilaiLabel = document.createElement("span");
+  nilaiLabel.className = "combo-tooltip-value";
+
+  barisLabel.append(
+    labelData,
+    nilaiLabel
+  );
+
+  // Baris nilai bar
+  const barisNilai = document.createElement("div");
+  barisNilai.className = "combo-tooltip-row";
+
+  const labelNilai = document.createElement("span");
+  labelNilai.className = "combo-tooltip-label";
+  labelNilai.textContent = "Nilai:";
+
+  const tooltipNilaiBar =
+    document.createElement("span");
+
+  tooltipNilaiBar.className =
+    "combo-tooltip-value";
+
+  barisNilai.append(
+    labelNilai,
+    tooltipNilaiBar
+  );
+
+  // Baris persentase line2
+  const barisNilaiLine2 =
+    document.createElement("div");
+
+  barisNilaiLine2.className =
+    "combo-tooltip-row";
+
+  const labelNilaiLine2 =
+    document.createElement("span");
+
+  labelNilaiLine2.className =
+    "combo-tooltip-label";
+
+  labelNilaiLine2.textContent =
+    "Persentase:";
+
+  const tooltipNilaiLine2 =
+    document.createElement("span");
+
+  tooltipNilaiLine2.className =
+    "combo-tooltip-value";
+
+  barisNilaiLine2.append(
+    labelNilaiLine2,
+    tooltipNilaiLine2
+  );
+
+  tooltip.append(
+    title,
+    barisNama,
+    barisLabel,
+    barisNilai,
+    barisNilaiLine2
+  );
+
+  grafik.appendChild(tooltip);
+
+  return {
+    tooltip,
+    title,
+    nilaiNama,
+    nilaiLabel,
+    nilaiBar: tooltipNilaiBar,
+    nilaiLine2: tooltipNilaiLine2
+  };
 }
 
 function buatGrafikKombinasi(
@@ -1302,7 +1709,19 @@ function buatGrafikKombinasi(
         )
       );
 
-      const line2 = Math.max(
+    let line2 = 0;
+
+    if (konfigurasi.line2IsPercentage) {
+      line2 = Math.max(
+        0,
+        hitungPersentaseKolom(
+          dataBarisSpreadsheet,
+          konfigurasi.line2Numerator,
+          konfigurasi.line2Denominator
+        )
+      );
+    } else {
+      line2 = Math.max(
         0,
         ubahMenjadiAngka(
           ambilNilaiSpreadsheet(
@@ -1311,6 +1730,7 @@ function buatGrafikKombinasi(
           )
         )
       );
+    }
 
       return {
         label,
@@ -1352,7 +1772,7 @@ function buatGrafikKombinasi(
     1
   );
 
-  const tinggiPlot = 240;
+  const tinggiPlot = 185;
   const lebarPerKawasan = 92;
   const paddingGrafik = 8;
 
@@ -1364,6 +1784,8 @@ function buatGrafikKombinasi(
     document.createElement("div");
 
   grafik.className = "combo-chart";
+
+  const elemenTooltip = buatTooltipCombo(grafik);
 
   /*
   * Area grafik yang dapat di-scroll.
@@ -1396,7 +1818,13 @@ function buatGrafikKombinasi(
    */
   dataKawasan.forEach(data => {
     const itemBar = document.createElement("div");
+
     itemBar.className = "combo-bar-item";
+    itemBar.setAttribute("tabindex", "0");
+    itemBar.setAttribute(
+      "aria-label",
+      `${data.label}, ${konfigurasi.labels[0]}: ${formatAngkaDesimal(data.bar)}`
+    );
 
     const bar = document.createElement("span");
     bar.className = "combo-bar";
@@ -1431,6 +1859,105 @@ function buatGrafikKombinasi(
       labelKawasan
     );
 
+    function tampilkanTooltip(event) {
+      if (!event) {
+        return;
+      }
+
+      elemenTooltip.title.textContent =
+        "Informasi Kawasan";
+
+      elemenTooltip.nilaiNama.textContent =
+        data.label;
+
+      elemenTooltip.nilaiLabel.textContent =
+        konfigurasi.labels[0];
+
+      elemenTooltip.nilaiBar.textContent =
+        formatAngkaDesimal(data.bar);
+
+      if (konfigurasi.line2IsPercentage) {
+        elemenTooltip.nilaiLine2.textContent =
+          `${formatAngkaDesimal(data.line2)}%`;
+      } else {
+        elemenTooltip.nilaiLine2.textContent =
+          formatAngkaDesimal(data.line2);
+      }
+
+      const jarak = 16;
+      const lebarTooltip = 240;
+      const tinggiTooltip = 100;
+
+      let posisiX = event.clientX + jarak;
+      let posisiY = event.clientY + jarak;
+
+      if (
+        posisiX + lebarTooltip >
+        window.innerWidth
+      ) {
+        posisiX =
+          event.clientX -
+          lebarTooltip -
+          jarak;
+      }
+
+      if (
+        posisiY + tinggiTooltip >
+        window.innerHeight
+      ) {
+        posisiY =
+          event.clientY -
+          tinggiTooltip -
+          jarak;
+      }
+
+      elemenTooltip.tooltip.style.left =
+        `${Math.max(5, posisiX)}px`;
+
+      elemenTooltip.tooltip.style.top =
+        `${Math.max(5, posisiY)}px`;
+
+      elemenTooltip.tooltip.classList.add("visible");
+      elemenTooltip.tooltip.setAttribute(
+        "aria-hidden",
+        "false"
+      );
+    }
+
+    function sembunyikanTooltip() {
+      elemenTooltip.tooltip.classList.remove("visible");
+
+      elemenTooltip.tooltip.setAttribute(
+        "aria-hidden",
+        "true"
+      );
+    }
+
+    itemBar.addEventListener(
+      "mouseenter",
+      tampilkanTooltip
+    );
+
+    itemBar.addEventListener(
+      "mousemove",
+      tampilkanTooltip
+    );
+
+    itemBar.addEventListener(
+      "mouseleave",
+      sembunyikanTooltip
+    );
+
+    itemBar.addEventListener(
+      "focus",
+      tampilkanTooltip
+    );
+
+    itemBar.addEventListener(
+      "blur",
+      sembunyikanTooltip
+    );
+
     bars.appendChild(itemBar);
   });
 
@@ -1444,6 +1971,12 @@ areaScroll.appendChild(plot);
 grafik.appendChild(areaScroll);
 container.appendChild(grafik);
 
+const chartCard = container.closest(".chart-card");
+
+if (chartCard) {
+  chartCard.classList.add("combo-chart-card");
+}
+
   /*
    * Setelah bar tampil, baru gambar line dan point.
    */
@@ -1453,7 +1986,8 @@ container.appendChild(grafik);
       bars,
       dataKawasan,
       nilaiMaksimum,
-      tinggiPlot
+      tinggiPlot,
+      konfigurasi
     );
   });
 
@@ -1548,6 +2082,24 @@ window.addEventListener("resize", () => {
   }, 150);
 });
 
+function sembunyikanSemuaTooltip() {
+  document
+    .querySelectorAll(".combo-tooltip, .bar-tooltip, .pie-tooltip")
+    .forEach(el => {
+      el.classList.remove("visible");
+      el.setAttribute("aria-hidden", "true");
+      el.style.left = "-9999px";
+      el.style.top = "-9999px";
+    });
+}
+
+window.addEventListener("blur", sembunyikanSemuaTooltip);
+window.addEventListener(
+  "scroll",
+  sembunyikanSemuaTooltip,
+  { passive: true }
+);
+
 function buatGrafikPie(containerId, dataArray, labels, judul) {
   const container = bersihkanContainerGrafik(containerId);
 
@@ -1568,7 +2120,10 @@ function buatGrafikPie(containerId, dataArray, labels, judul) {
     }
   });
 
-  const totalNilai = dataValid.reduce((total, item) => total + item.nilai, 0);
+  const totalNilai = dataValid.reduce(
+    (total, item) => total + item.nilai,
+    0
+  );
 
   if (!dataValid.length || totalNilai <= 0) {
     buatElemenGrafikKosong(container);
@@ -1578,25 +2133,272 @@ function buatGrafikPie(containerId, dataArray, labels, judul) {
   const pieWrapper = document.createElement("div");
   pieWrapper.className = "pie-wrapper";
 
-  const pieChart = document.createElement("div");
-  pieChart.className = "pie-chart";
+  const ukuran = 200;
+  const pusat = ukuran / 2;
+  const radius = 94;
+
+  const pieChart = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "svg"
+  );
+
+  pieChart.classList.add("pie-chart");
+  pieChart.setAttribute("viewBox", `0 0 ${ukuran} ${ukuran}`);
+  pieChart.setAttribute("role", "img");
+  pieChart.setAttribute(
+    "aria-label",
+    judul || "Diagram pie"
+  );
+
+  const pieTooltip = document.createElement("div");
+  pieTooltip.className = "pie-tooltip";
+  pieTooltip.setAttribute("aria-hidden", "true");
+
+  const tooltipTitle = document.createElement("div");
+  tooltipTitle.className = "pie-tooltip-title";
+
+  const tooltipRowNama = document.createElement("div");
+  tooltipRowNama.className = "pie-tooltip-row";
+
+  const tooltipLabelNama = document.createElement("span");
+  tooltipLabelNama.className = "pie-tooltip-label";
+  tooltipLabelNama.textContent = "Kawasan:";
+
+  const tooltipValueNama = document.createElement("span");
+  tooltipValueNama.className = "pie-tooltip-value";
+
+  tooltipRowNama.append(
+    tooltipLabelNama,
+    tooltipValueNama
+  );
+
+  const tooltipRowData = document.createElement("div");
+  tooltipRowData.className = "pie-tooltip-row";
+
+  const tooltipLabelData = document.createElement("span");
+  tooltipLabelData.className = "pie-tooltip-label";
+  tooltipLabelData.textContent = "Data:";
+
+  const tooltipValueData = document.createElement("span");
+  tooltipValueData.className = "pie-tooltip-value";
+  tooltipValueData.textContent = judul || "Pie Chart";
+
+  tooltipRowData.append(
+    tooltipLabelData,
+    tooltipValueData
+  );
+
+  const tooltipRowNilai = document.createElement("div");
+  tooltipRowNilai.className = "pie-tooltip-row";
+
+  const tooltipLabelNilai = document.createElement("span");
+  tooltipLabelNilai.className = "pie-tooltip-label";
+  tooltipLabelNilai.textContent = "Nilai:";
+
+  const tooltipValueNilai = document.createElement("span");
+  tooltipValueNilai.className = "pie-tooltip-value";
+
+  tooltipRowNilai.append(
+    tooltipLabelNilai,
+    tooltipValueNilai
+  );
+
+  tooltipTitle.textContent = "Informasi Kawasan";
+
+  pieTooltip.append(
+    tooltipTitle,
+    tooltipRowNama,
+    tooltipRowData,
+    tooltipRowNilai
+  );
 
   const pieLegend = document.createElement("div");
   pieLegend.className = "pie-legend";
 
-  let sudutSaatIni = 0;
-  const bagianPie = [];
+  let sudutSaatIni = -90;
+
+  function titikLingkaran(sudut) {
+    const sudutDalamRadian =
+      (sudut * Math.PI) / 180;
+
+    return {
+      x: pusat + radius * Math.cos(sudutDalamRadian),
+      y: pusat + radius * Math.sin(sudutDalamRadian)
+    };
+  }
+
+  function buatPathPie(sudutMulai, sudutAkhir) {
+    const titikMulai = titikLingkaran(sudutMulai);
+    const titikAkhir = titikLingkaran(sudutAkhir);
+
+    const besarBusur =
+      sudutAkhir - sudutMulai > 180 ? 1 : 0;
+
+    return [
+      `M ${pusat} ${pusat}`,
+      `L ${titikMulai.x} ${titikMulai.y}`,
+      `A ${radius} ${radius} 0 ${besarBusur} 1 ${titikAkhir.x} ${titikAkhir.y}`,
+      "Z"
+    ].join(" ");
+  }
+
+  function tampilkanTooltip(event, item, slice) {
+    if (!event) {
+      return;
+    }
+
+    tooltipValueNama.textContent =
+      item.label;
+
+    tooltipValueNilai.textContent =
+      formatNilaiPie(item.nilai, judul);
+
+    pieTooltip.classList.add("visible");
+    pieTooltip.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+    /*
+    * Ukur ukuran tooltip setelah dibuat terlihat.
+    */
+    const batasTooltip =
+      pieTooltip.getBoundingClientRect();
+
+    const jarak = 16;
+
+    let posisiX =
+      event.clientX + jarak;
+
+    let posisiY =
+      event.clientY + jarak;
+
+    /*
+    * Jika mendekati sisi kanan,
+    * tooltip muncul di sebelah kiri cursor.
+    */
+    if (
+      posisiX + batasTooltip.width >
+      window.innerWidth - 8
+    ) {
+      posisiX =
+        event.clientX -
+        batasTooltip.width -
+        jarak;
+    }
+
+    /*
+    * Jika mendekati sisi bawah,
+    * tooltip muncul di atas cursor.
+    */
+    if (
+      posisiY + batasTooltip.height >
+      window.innerHeight - 8
+    ) {
+      posisiY =
+        event.clientY -
+        batasTooltip.height -
+        jarak;
+    }
+
+    pieTooltip.style.left =
+      `${Math.max(8, posisiX)}px`;
+
+    pieTooltip.style.top =
+      `${Math.max(8, posisiY)}px`;
+
+    slice.classList.add("active");
+  }
+
+  function sembunyikanTooltip(slice) {
+    pieTooltip.classList.remove("visible");
+
+    pieTooltip.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    slice.classList.remove("active");
+  }
 
   dataValid.forEach((item, index) => {
-    const persentase = (item.nilai / totalNilai) * 100;
-    const sudut = (item.nilai / totalNilai) * 360;
-    const warna = WARNA_PIE[index % WARNA_PIE.length];
-    const celah = dataValid.length > 1 ? 0.8 : 0;
-    const sudutMulai = sudutSaatIni + celah / 2;
-    const sudutAkhir = sudutSaatIni + sudut - celah / 2;
+    const persentase =
+      (item.nilai / totalNilai) * 100;
 
-    bagianPie.push(`${warna} ${sudutMulai}deg ${sudutAkhir}deg`);
-    sudutSaatIni += sudut;
+    const sudut =
+      (item.nilai / totalNilai) * 360;
+
+    const sudutMulai = sudutSaatIni;
+    const sudutAkhir = sudutSaatIni + sudut;
+
+    const warna =
+      WARNA_PIE[index % WARNA_PIE.length];
+
+    const slice = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
+
+    slice.classList.add("pie-slice");
+    slice.setAttribute(
+      "d",
+      buatPathPie(sudutMulai, sudutAkhir)
+    );
+    slice.setAttribute("fill", warna);
+    slice.setAttribute(
+      "aria-label",
+      `${item.label}: ${formatAngkaDesimal(item.nilai)}`
+    );
+    slice.setAttribute("tabindex", "0");
+
+    slice.addEventListener(
+      "mouseenter",
+      event => {
+        tampilkanTooltip(
+          event,
+          item,
+          slice
+        );
+      }
+    );
+
+    slice.addEventListener(
+      "mousemove",
+      event => {
+        tampilkanTooltip(
+          event,
+          item,
+          slice
+        );
+      }
+    );
+
+    slice.addEventListener(
+      "mouseleave",
+      () => {
+        sembunyikanTooltip(slice);
+      }
+    );
+
+    slice.addEventListener("focus", event => {
+      const batasSlice =
+        slice.getBoundingClientRect();
+
+      tampilkanTooltip(
+        {
+          clientX: batasSlice.left + batasSlice.width / 2,
+          clientY: batasSlice.top
+        },
+        item,
+        slice
+      );
+    });
+
+    slice.addEventListener("blur", () => {
+      sembunyikanTooltip(slice);
+    });
+
+    pieChart.appendChild(slice);
 
     const legendItem = document.createElement("div");
     legendItem.className = "legend-item";
@@ -1608,17 +2410,35 @@ function buatGrafikPie(containerId, dataArray, labels, judul) {
     const legendLabel = document.createElement("span");
     legendLabel.className = "legend-label";
     legendLabel.textContent =
-      `${item.label}: ${formatAngkaDesimal(item.nilai)} (${persentase.toFixed(2)}%)`;
+      `${item.label}: ${formatNilaiPie(item.nilai, judul)}`;
 
-    legendItem.appendChild(legendColor);
-    legendItem.appendChild(legendLabel);
+    legendItem.append(
+      legendColor,
+      legendLabel
+    );
+
     pieLegend.appendChild(legendItem);
+
+    sudutSaatIni = sudutAkhir;
   });
 
-  pieChart.style.background = `conic-gradient(${bagianPie.join(", ")})`;
-  pieWrapper.appendChild(pieChart);
-  pieWrapper.appendChild(pieLegend);
+  pieWrapper.append(
+    pieChart,
+    pieLegend,
+    pieTooltip
+  );
+
   container.appendChild(pieWrapper);
+}
+
+function formatNilaiPie(nilai, judul = "") {
+  const angka = Number(nilai || 0);
+  const hasil = angka.toLocaleString("id-ID", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  return `${hasil}%`;
 }
 
 function renderChart(containerId, tipeChart, dataArray, labels, judul) {
@@ -1798,6 +2618,20 @@ function tampilkanDashboard(
   const areaGrafik = document.querySelector(".chart-area");
   if (areaGrafik) {
     areaGrafik.style.display = "grid";
+    
+    /*
+     * Hanya tambahkan class first-load saat pertama kali
+     * (saat dataInitialized masih false)
+     */
+    if (!dataInitialized) {
+      areaGrafik.classList.add("first-load");
+    } else {
+      /*
+       * Saat menu berubah, hapus class first-load
+       * agar animasi tidak jalan lagi
+       */
+      areaGrafik.classList.remove("first-load");
+    }
   }
 
   const kombinasiKategori = [
@@ -1842,6 +2676,7 @@ function tampilkanDashboard(
 
 function pasangEventMenu() {
   const daftarMenu = document.querySelectorAll(".menu-item");
+  const tombolHome = document.getElementById("homeBtn");
 
   daftarMenu.forEach(itemMenu => {
     itemMenu.addEventListener("click", event => {
@@ -1851,18 +2686,21 @@ function pasangEventMenu() {
         menu.classList.remove("active");
       });
 
+      tombolHome?.classList.remove("active");
       itemMenu.classList.add("active");
 
       const kategori = itemMenu.getAttribute("data-category");
-      if (!kategori) {
-        return;
-      }
 
-      tampilkanDashboard(currentKabupaten, kategori, false);
+      if (kategori) {
+        tampilkanDashboard(
+          currentKabupaten,
+          kategori,
+          false
+        );
+      }
     });
   });
 
-  const tombolHome = document.getElementById("homeBtn");
   if (tombolHome) {
     tombolHome.addEventListener("click", event => {
       event.preventDefault();
@@ -1871,8 +2709,17 @@ function pasangEventMenu() {
         menu.classList.remove("active");
       });
 
-      tampilkanDashboard(currentKabupaten, "kumuh", false);
+      tombolHome.classList.add("active");
+
+      tampilkanDashboard(
+        currentKabupaten,
+        "kumuh",
+        false
+      );
     });
+
+    // Home aktif ketika dashboard pertama kali dibuka
+    tombolHome.classList.add("active");
   }
 }
 
@@ -1912,5 +2759,3 @@ if (document.readyState === "loading") {
 } else {
   mulaiDashboard();
 }
-
-
